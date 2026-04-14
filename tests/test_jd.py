@@ -54,7 +54,6 @@ async def test_classify_extracts_skills(client: AsyncClient):
     )
     assert resp.status_code == 201
     body = resp.json()
-    skill_texts = [s["text"] for s in body["skills"]]
     # Mock NLP should pick up at least some well-known keywords
     assert len(body["skills"]) > 0
     for s in body["skills"]:

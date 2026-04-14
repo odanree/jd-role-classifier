@@ -57,7 +57,7 @@ def fine_tune(
 
     texts, labels = load_labeled_data(data_path)
     label_map = build_label_map(labels)
-    int_labels = [label_map[l] for l in labels]
+    int_labels = [label_map[lbl] for lbl in labels]
     num_labels = len(label_map)
 
     print(f"Loaded {len(texts)} samples across {num_labels} SOC codes")

@@ -21,7 +21,6 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
-    settings = get_settings()
     app = FastAPI(
         title="JD Role Classifier",
         description="NLP skill extraction + O*NET SOC role classification for job descriptions",
