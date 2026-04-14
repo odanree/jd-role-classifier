@@ -23,7 +23,7 @@ env/
 dev.db
 
 # Models (large binary files — download or fine-tune locally)
-models/
+/models/
 
 # IDE
 .vscode/
