@@ -1,7 +1,14 @@
 FROM python:3.12-slim AS builder
 WORKDIR /build
 COPY . .
-RUN pip install --upgrade pip && pip install hatchling && pip install --no-cache-dir . && \
+# Install the CPU-only torch first. The default PyPI torch bundles CUDA
+# (nvidia-* + triton wheels, ~5GB) which this GPU-less VPS can't use and which
+# repeatedly filled the disk during image extraction. Installing it before
+# `pip install .` satisfies the torch>=2.2.0 constraint so the CUDA build is
+# never pulled.
+RUN pip install --upgrade pip && pip install hatchling && \
+    pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir . && \
     python -m spacy download en_core_web_sm
 
 FROM python:3.12-slim AS runtime
