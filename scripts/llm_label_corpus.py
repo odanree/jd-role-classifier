@@ -35,19 +35,34 @@ Usage
         --limit 2700 \
         --min-confidence 0.6
 
-Requires ``ANTHROPIC_API_KEY`` in the environment (or an ``ant auth login``
-profile, which the SDK reads automatically). Beacon DB access goes through
-the SSH tunnel — see ``portfolio-infra/scripts/beacon-tunnel.ps1``.
+Reads ``ANTHROPIC_API_KEY`` (and optionally ``BEACON_DATABASE_URL``) from
+``.env`` in the repo root. Falls back to the live process environment if
+the file is missing — the SDK also accepts an ``ant auth login`` profile.
+Beacon DB access goes through the SSH tunnel — see
+``portfolio-infra/scripts/beacon-tunnel.ps1``.
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
 import json
+import os
 import sys
 import time
 from pathlib import Path
 from typing import Any
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    print("python-dotenv not installed. Run: pip install -e .", file=sys.stderr)
+    sys.exit(1)
+
+# Load .env from the repo root (parent of this file's directory) before any
+# code reads os.environ — anthropic.Anthropic() picks up ANTHROPIC_API_KEY at
+# construction time, so this must run first.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(_REPO_ROOT / ".env")
 
 try:
     import anthropic
@@ -374,8 +389,14 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
         "--beacon-url",
-        default="postgresql://jsp_user:changeme@127.0.0.1:15436/job_search",
-        help="Postgres URL for beacon DB (via SSH tunnel by default).",
+        default=os.environ.get(
+            "BEACON_DATABASE_URL",
+            "postgresql://jsp_user:changeme@127.0.0.1:15436/job_search",
+        ),
+        help=(
+            "Postgres URL for beacon DB. Defaults to BEACON_DATABASE_URL "
+            "from .env if set, else the local SSH tunnel default."
+        ),
     )
     ap.add_argument(
         "--output",
