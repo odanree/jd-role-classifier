@@ -25,6 +25,10 @@ dev.db
 # Models (large binary files — download or fine-tune locally)
 /models/
 
+# Generated labeled corpora (may contain proprietary JD text + grows large).
+# Reference data committed to the repo lives at app/data/ instead.
+/data/*.jsonl
+
 # IDE
 .vscode/
 .idea/
