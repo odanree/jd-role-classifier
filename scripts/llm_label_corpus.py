@@ -1,4 +1,4 @@
-"""Bootstrap a labeled JD corpus by calling Claude Opus 4.8 over the beacon DB.
+"""Bootstrap a labeled JD corpus by calling Claude Sonnet 4.6 over the beacon DB.
 
 Produces ``data/labeled_jds.jsonl`` in the exact shape expected by
 ``scripts/fine_tune.py``:
@@ -8,10 +8,12 @@ Produces ``data/labeled_jds.jsonl`` in the exact shape expected by
 
 Design choices
 --------------
-* **Model**: Claude Opus 4.8 — these labels feed BERT+LoRA fine-tuning, so
-  label quality matters more than per-call cost. Sonnet 4.6 would be ~40%
-  cheaper but the labels propagate into the classifier we use at inference
-  time forever.
+* **Model**: Claude Sonnet 4.6. For structured-output classification
+  picking from a 30-code enum, the schema constraint does most of the
+  heavy lifting — Sonnet closes most of the quality gap with Opus on this
+  shape of task at ~40% of the cost. Haiku 4.5 is cheaper still but
+  struggles on the lookalike classes (Data Scientist vs MLE vs Data
+  Engineer) where the labels matter most.
 * **Structured outputs** (``output_config.format``) with ``soc_code`` as an
   enum of the 30 O*NET codes in ``app/data/onet_soc_codes.json``. The model
   cannot emit a code outside the taxonomy.
@@ -60,10 +62,10 @@ except ImportError:
     sys.exit(1)
 
 
-# Opus 4.8 pricing — $5/MTok input, $25/MTok output, cache writes 1.25x, reads 0.1x.
+# Sonnet 4.6 pricing — $3/MTok input, $15/MTok output, cache writes 1.25x, reads 0.1x.
 # Used for the end-of-run cost summary so the operator knows what was spent.
-INPUT_USD_PER_MTOK = 5.00
-OUTPUT_USD_PER_MTOK = 25.00
+INPUT_USD_PER_MTOK = 3.00
+OUTPUT_USD_PER_MTOK = 15.00
 CACHE_WRITE_MULT = 1.25
 CACHE_READ_MULT = 0.10
 
@@ -184,7 +186,7 @@ def prewarm_cache(
     so it's still on the cacheable prefix), then everything after that reads.
     """
     client.messages.create(
-        model="claude-opus-4-8",
+        model="claude-sonnet-4-6",
         max_tokens=0,
         system=[
             {
@@ -208,7 +210,7 @@ def classify_one(
     retries on 429/5xx (default max_retries=2)."""
     user_content = f"Job title: {title or '(none provided)'}\n\nJob description:\n{jd_text}"
     response = client.messages.create(
-        model="claude-opus-4-8",
+        model="claude-sonnet-4-6",
         max_tokens=512,
         system=[
             {
