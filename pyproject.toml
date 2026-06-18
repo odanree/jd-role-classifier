@@ -31,6 +31,9 @@ dev = [
     "ruff>=0.8.0",
     "aiosqlite>=0.20.0",
 ]
+labeling = [
+    "anthropic>=0.40.0",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
