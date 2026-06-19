@@ -183,7 +183,7 @@ def main(
     print(f"  Dropped from labeled (dropped code):   {stats['from_labeled_dropped_code']}")
     print(f"  Added new from relabel:                {stats['from_relabel_added_new']}")
     print(f"  Rejected relabels (low conf / drop):   {stats['relabel_records_rejected']}")
-    print(f"  -------")
+    print("  -------")
     print(f"  Final corpus:                          {len(merged)}")
     print()
 
